@@ -1,0 +1,43 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+.trainer {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 30px;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item {
+  padding: 10px 20px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  border-radius: 6px;
+  user-select: none;
+  transition: 0.2s;
+}
+
+.item:hover {
+  background: #f0f0f0;
+}
+
+.selected {
+  background: #ffe08a;
+}
+
+.correct {
+  background: #9be7a1;
+  cursor: default;
+}
+
+.wrong {
+  background: #f7a1a1;
+}
