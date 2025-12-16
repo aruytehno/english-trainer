@@ -10,67 +10,103 @@ const wordsColumn = document.getElementById("words");
 const translationsColumn = document.getElementById("translations");
 
 let selectedItem = null;
+let isBlocked = false;
 
-// перемешивание
+/* ---------- utils ---------- */
+
 function shuffle(array) {
-  return array.sort(() => Math.random() - 0.5);
+  return [...array].sort(() => Math.random() - 0.5);
 }
 
-// создание элементов
+/* ---------- rendering ---------- */
+
 function createItems() {
-  shuffle([...pairs]).forEach(p => {
-    const div = document.createElement("div");
-    div.textContent = p.word;
-    div.className = "item";
-    div.dataset.id = p.id;
-    div.dataset.type = "word";
-    wordsColumn.appendChild(div);
+  wordsColumn.innerHTML = "";
+  translationsColumn.innerHTML = "";
+
+  shuffle(pairs).forEach(p => {
+    wordsColumn.appendChild(createItem(p.word, p.id, "word"));
   });
 
-  shuffle([...pairs]).forEach(p => {
-    const div = document.createElement("div");
-    div.textContent = p.translation;
-    div.className = "item";
-    div.dataset.id = p.id;
-    div.dataset.type = "translation";
-    translationsColumn.appendChild(div);
+  shuffle(pairs).forEach(p => {
+    translationsColumn.appendChild(createItem(p.translation, p.id, "translation"));
   });
 }
 
-// логика кликов
-document.addEventListener("click", e => {
-  if (!e.target.classList.contains("item")) return;
-  if (e.target.classList.contains("correct")) return;
+function createItem(text, id, type) {
+  const div = document.createElement("div");
+  div.className = "item";
+  div.textContent = text;
+  div.dataset.id = id;
+  div.dataset.type = type;
+  return div;
+}
 
+/* ---------- game logic ---------- */
+
+document.addEventListener("click", e => {
+  if (isBlocked) return;
+
+  const target = e.target;
+  if (!target.classList.contains("item")) return;
+  if (target.classList.contains("correct")) return;
+
+  // первый клик
   if (!selectedItem) {
-    selectedItem = e.target;
-    selectedItem.classList.add("selected");
+    selectItem(target);
     return;
   }
 
-  if (selectedItem.dataset.type === e.target.dataset.type) {
-    selectedItem.classList.remove("selected");
-    selectedItem = e.target;
-    selectedItem.classList.add("selected");
+  // клик по тому же столбцу — смена выбора
+  if (selectedItem.dataset.type === target.dataset.type) {
+    clearSelection();
+    selectItem(target);
     return;
   }
 
   // проверка пары
-  if (selectedItem.dataset.id === e.target.dataset.id) {
-    selectedItem.classList.add("correct");
-    e.target.classList.add("correct");
-  } else {
-    selectedItem.classList.add("wrong");
-    e.target.classList.add("wrong");
-
-    setTimeout(() => {
-      selectedItem.classList.remove("wrong");
-      e.target.classList.remove("wrong");
-    }, 600);
-  }
-
-  selectedItem.classList.remove("selected");
-  selectedItem = null;
+  checkPair(target);
 });
+
+function selectItem(item) {
+  selectedItem = item;
+  item.classList.add("selected");
+}
+
+function clearSelection() {
+  if (selectedItem) {
+    selectedItem.classList.remove("selected");
+    selectedItem = null;
+  }
+}
+
+function checkPair(target) {
+  if (selectedItem.dataset.id === target.dataset.id) {
+    markCorrect(target);
+  } else {
+    markWrong(target);
+  }
+  clearSelection();
+}
+
+function markCorrect(target) {
+  selectedItem.classList.add("correct");
+  target.classList.add("correct");
+}
+
+function markWrong(target) {
+  isBlocked = true;
+
+  selectedItem.classList.add("wrong");
+  target.classList.add("wrong");
+
+  setTimeout(() => {
+    selectedItem.classList.remove("wrong");
+    target.classList.remove("wrong");
+    isBlocked = false;
+  }, 600);
+}
+
+/* ---------- start ---------- */
 
 createItems();
