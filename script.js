@@ -1,18 +1,36 @@
 class EnglishTrainer {
     constructor() {
-        this.pairs = [
-            ['apple', 'яблоко'],
-            ['house', 'дом'],
-            ['book', 'книга'],
-            ['water', 'вода'],
-            ['friend', 'друг']
-        ];
-
+        this.pairs = [];
         this.selectedCard = null;
         this.isChecking = false;
         this.matchedPairs = new Set();
 
-        this.init();
+        this.loadWords().then(() => {
+            this.init();
+        });
+    }
+
+    async loadWords() {
+        try {
+            const response = await fetch('words.json');
+            this.pairs = await response.json();
+            this.limitPairsToFive(); // Берем только 5 пар для игры
+        } catch (error) {
+            console.error('Ошибка загрузки слов:', error);
+            this.pairs = [
+                ['apple', 'яблоко'],
+                ['house', 'дом'],
+                ['book', 'книга'],
+                ['water', 'вода'],
+                ['friend', 'друг']
+            ];
+        }
+    }
+
+    limitPairsToFive() {
+        // Берем случайные 5 пар из 50 для каждой игры
+        const shuffled = [...this.pairs].sort(() => Math.random() - 0.5);
+        this.pairs = shuffled.slice(0, 5);
     }
 
     init() {
@@ -23,6 +41,10 @@ class EnglishTrainer {
     createCards() {
         const englishColumn = document.getElementById('english-column');
         const russianColumn = document.getElementById('russian-column');
+
+        // Очищаем колонки перед созданием новых карточек
+        englishColumn.innerHTML = '';
+        russianColumn.innerHTML = '';
 
         this.pairs.forEach((pair, index) => {
             const [english, russian] = pair;
@@ -120,9 +142,25 @@ class EnglishTrainer {
     checkCompletion() {
         if (this.matchedPairs.size === this.pairs.length) {
             setTimeout(() => {
-                alert('Поздравляем! Все пары собраны правильно!');
+                if (confirm('Поздравляем! Все пары собраны правильно!\n\nХотите сыграть еще раз?')) {
+                    this.restartGame();
+                }
             }, 300);
         }
+    }
+
+    restartGame() {
+        // Сброс состояния
+        this.selectedCard = null;
+        this.isChecking = false;
+        this.matchedPairs.clear();
+
+        // Выбор новых случайных 5 пар
+        this.limitPairsToFive();
+
+        // Пересоздание карточек
+        this.createCards();
+        this.shuffleColumns();
     }
 }
 
