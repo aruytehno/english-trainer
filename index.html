@@ -1,19 +1,55 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>English Pairs Trainer</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренажер "Составь пары"</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-language"></i> Тренажер "Составь пары"</h1>
+            <p class="instruction">Кликайте на слова в левом и правом столбцах, чтобы составить правильные пары "английское слово - русский перевод".</p>
+        </header>
 
-<h1>Составь пары</h1>
+        <main>
+            <div class="game-area">
+                <div class="column">
+                    <h2>Английские слова</h2>
+                    <div class="words-list" id="english-column">
+                        <!-- Элементы будут добавлены через JS -->
+                    </div>
+                </div>
+                <div class="column">
+                    <h2>Русский перевод</h2>
+                    <div class="words-list" id="russian-column">
+                        <!-- Элементы будут добавлены через JS -->
+                    </div>
+                </div>
+            </div>
 
-<div class="trainer">
-  <div class="column" id="words"></div>
-  <div class="column" id="translations"></div>
-</div>
+            <div class="controls">
+                <button id="restart-btn">
+                    <i class="fas fa-redo"></i> Начать заново
+                </button>
+                <div class="stats">
+                    <span>Сопоставлено: <span id="matched-count">0</span> из 5</span>
+                </div>
+            </div>
+        </main>
 
-<script src="script.js"></script>
+        <footer>
+            <p>Тренажер для изучения английского языка &copy; 2023</p>
+        </footer>
+    </div>
+
+    <div class="notification" id="notification">
+        <p>Поздравляем! Все пары успешно сопоставлены!</p>
+        <button id="close-notification">Продолжить</button>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>

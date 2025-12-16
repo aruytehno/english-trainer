@@ -1,112 +1,182 @@
-const pairs = [
-  { id: 1, word: "apple", translation: "яблоко" },
-  { id: 2, word: "dog", translation: "собака" },
-  { id: 3, word: "house", translation: "дом" },
-  { id: 4, word: "book", translation: "книга" },
-  { id: 5, word: "sun", translation: "солнце" }
-];
+document.addEventListener('DOMContentLoaded', function() {
+    // Исходные пары слов
+    const wordPairs = [
+        { english: "apple", russian: "яблоко" },
+        { english: "house", russian: "дом" },
+        { english: "book", russian: "книга" },
+        { english: "water", russian: "вода" },
+        { english: "friend", russian: "друг" }
+    ];
 
-const wordsColumn = document.getElementById("words");
-const translationsColumn = document.getElementById("translations");
+    // Элементы DOM
+    const englishColumn = document.getElementById('english-column');
+    const russianColumn = document.getElementById('russian-column');
+    const restartBtn = document.getElementById('restart-btn');
+    const matchedCountElement = document.getElementById('matched-count');
+    const notification = document.getElementById('notification');
+    const closeNotificationBtn = document.getElementById('close-notification');
 
-let selectedItem = null;
-let isBlocked = false;
+    // Состояние игры
+    let gameState = {
+        selectedElement: null,
+        matchedPairs: 0,
+        isChecking: false,
+        englishWords: [],
+        russianWords: []
+    };
 
-/* ---------- utils ---------- */
+    // Инициализация игры
+    function initGame() {
+        gameState.selectedElement = null;
+        gameState.matchedPairs = 0;
+        gameState.isChecking = false;
+        
+        // Очищаем колонки
+        englishColumn.innerHTML = '';
+        russianColumn.innerHTML = '';
+        
+        // Создаем массивы слов
+        gameState.englishWords = [...wordPairs.map(pair => pair.english)];
+        gameState.russianWords = [...wordPairs.map(pair => pair.russian)];
+        
+        // Перемешиваем массивы
+        shuffleArray(gameState.englishWords);
+        shuffleArray(gameState.russianWords);
+        
+        // Создаем элементы в колонках
+        gameState.englishWords.forEach(word => {
+            createWordElement(word, englishColumn, 'english');
+        });
+        
+        gameState.russianWords.forEach(word => {
+            createWordElement(word, russianColumn, 'russian');
+        });
+        
+        updateMatchedCount();
+    }
 
-function shuffle(array) {
-  return [...array].sort(() => Math.random() - 0.5);
-}
+    // Создание элемента слова
+    function createWordElement(word, container, language) {
+        const wordElement = document.createElement('div');
+        wordElement.className = 'word-item';
+        wordElement.textContent = word;
+        wordElement.dataset.word = word;
+        wordElement.dataset.language = language;
+        
+        wordElement.addEventListener('click', function() {
+            handleWordClick(this);
+        });
+        
+        container.appendChild(wordElement);
+    }
 
-/* ---------- rendering ---------- */
+    // Обработка клика по слову
+    function handleWordClick(clickedElement) {
+        // Если идет проверка или элемент уже сопоставлен - игнорируем клик
+        if (gameState.isChecking || clickedElement.classList.contains('correct')) {
+            return;
+        }
+        
+        // Если кликнули на уже выбранный элемент - снимаем выделение
+        if (clickedElement === gameState.selectedElement) {
+            clickedElement.classList.remove('selected');
+            gameState.selectedElement = null;
+            return;
+        }
+        
+        const clickedLanguage = clickedElement.dataset.language;
+        
+        // Если кликнули в том же столбце, что и ранее выбранный элемент
+        if (gameState.selectedElement && 
+            gameState.selectedElement.dataset.language === clickedLanguage) {
+            gameState.selectedElement.classList.remove('selected');
+            clickedElement.classList.add('selected');
+            gameState.selectedElement = clickedElement;
+            return;
+        }
+        
+        // Если кликнули в другом столбце
+        if (gameState.selectedElement && 
+            gameState.selectedElement.dataset.language !== clickedLanguage) {
+            checkPair(gameState.selectedElement, clickedElement);
+            return;
+        }
+        
+        // Если это первый клик
+        clickedElement.classList.add('selected');
+        gameState.selectedElement = clickedElement;
+    }
 
-function createItems() {
-  wordsColumn.innerHTML = "";
-  translationsColumn.innerHTML = "";
+    // Проверка пары
+    function checkPair(firstElement, secondElement) {
+        gameState.isChecking = true;
+        
+        const firstWord = firstElement.dataset.word;
+        const secondWord = secondElement.dataset.word;
+        
+        // Проверяем, является ли пара правильной
+        const isCorrect = wordPairs.some(pair => 
+            (pair.english === firstWord && pair.russian === secondWord) ||
+            (pair.english === secondWord && pair.russian === firstWord)
+        );
+        
+        if (isCorrect) {
+            // Правильная пара
+            firstElement.classList.remove('selected');
+            secondElement.classList.remove('selected');
+            
+            setTimeout(() => {
+                firstElement.classList.add('correct');
+                secondElement.classList.add('correct');
+                
+                gameState.selectedElement = null;
+                gameState.matchedPairs++;
+                updateMatchedCount();
+                gameState.isChecking = false;
+                
+                // Проверяем, завершена ли игра
+                if (gameState.matchedPairs === wordPairs.length) {
+                    setTimeout(() => {
+                        notification.classList.add('active');
+                    }, 500);
+                }
+            }, 300);
+        } else {
+            // Неправильная пара
+            firstElement.classList.add('wrong');
+            secondElement.classList.add('wrong');
+            
+            setTimeout(() => {
+                firstElement.classList.remove('selected', 'wrong');
+                secondElement.classList.remove('selected', 'wrong');
+                
+                gameState.selectedElement = null;
+                gameState.isChecking = false;
+            }, 1000);
+        }
+    }
 
-  shuffle(pairs).forEach(p => {
-    wordsColumn.appendChild(createItem(p.word, p.id, "word"));
-  });
+    // Обновление счетчика сопоставленных пар
+    function updateMatchedCount() {
+        matchedCountElement.textContent = gameState.matchedPairs;
+    }
 
-  shuffle(pairs).forEach(p => {
-    translationsColumn.appendChild(createItem(p.translation, p.id, "translation"));
-  });
-}
+    // Перемешивание массива (алгоритм Фишера-Йетса)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
 
-function createItem(text, id, type) {
-  const div = document.createElement("div");
-  div.className = "item";
-  div.textContent = text;
-  div.dataset.id = id;
-  div.dataset.type = type;
-  return div;
-}
+    // Обработчики событий
+    restartBtn.addEventListener('click', initGame);
+    
+    closeNotificationBtn.addEventListener('click', function() {
+        notification.classList.remove('active');
+    });
 
-/* ---------- game logic ---------- */
-
-document.addEventListener("click", e => {
-  if (isBlocked) return;
-
-  const target = e.target;
-  if (!target.classList.contains("item")) return;
-  if (target.classList.contains("correct")) return;
-
-  // первый клик
-  if (!selectedItem) {
-    selectItem(target);
-    return;
-  }
-
-  // клик по тому же столбцу — смена выбора
-  if (selectedItem.dataset.type === target.dataset.type) {
-    clearSelection();
-    selectItem(target);
-    return;
-  }
-
-  // проверка пары
-  checkPair(target);
+    // Запускаем игру при загрузке страницы
+    initGame();
 });
-
-function selectItem(item) {
-  selectedItem = item;
-  item.classList.add("selected");
-}
-
-function clearSelection() {
-  if (selectedItem) {
-    selectedItem.classList.remove("selected");
-    selectedItem = null;
-  }
-}
-
-function checkPair(target) {
-  if (selectedItem.dataset.id === target.dataset.id) {
-    markCorrect(target);
-  } else {
-    markWrong(target);
-  }
-  clearSelection();
-}
-
-function markCorrect(target) {
-  selectedItem.classList.add("correct");
-  target.classList.add("correct");
-}
-
-function markWrong(target) {
-  isBlocked = true;
-
-  selectedItem.classList.add("wrong");
-  target.classList.add("wrong");
-
-  setTimeout(() => {
-    selectedItem.classList.remove("wrong");
-    target.classList.remove("wrong");
-    isBlocked = false;
-  }, 600);
-}
-
-/* ---------- start ---------- */
-
-createItems();
