@@ -12,6 +12,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px; /* Добавляем отступы по краям для мобильных устройств */
 }
 
 .app {
@@ -21,6 +22,7 @@ body {
   padding: 24px 32px 28px;
   max-width: 720px;
   width: 100%;
+  margin: 0 auto; /* Центрирование по горизонтали */
 }
 
 .title {
@@ -32,6 +34,7 @@ body {
 
 .app-header {
   margin-bottom: 16px;
+  text-align: center; /* Центрируем содержимое заголовка */
 }
 
 .nav-tabs {
@@ -99,9 +102,12 @@ button:active {
 
 @media (max-width: 640px) {
   .app {
-    margin: 16px;
+    margin: 0; /* На мобильных можно убрать margin */
     padding: 18px 16px 22px;
   }
+
+  .nav-tabs {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
-
-
