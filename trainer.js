@@ -115,12 +115,31 @@ function handleCardClick(card) {
   const side = card.dataset.side;
   const index = Number(card.dataset.index);
 
+  // Проверяем, не пытаемся ли мы выбрать уже выбранную карточку с другой стороны
+  if (side === "left") {
+    if (selectedRightIndex !== null) {
+      // Если уже выбран правый элемент, проверяем совпадение
+      toggleSelection("left", index);
+      checkMatch();
+      return;
+    }
+  } else {
+    if (selectedLeftIndex !== null) {
+      // Если уже выбран левый элемент, проверяем совпадение
+      toggleSelection("right", index);
+      checkMatch();
+      return;
+    }
+  }
+
+  // Иначе просто выбираем карточку
   if (side === "left") {
     toggleSelection("left", index);
   } else {
     toggleSelection("right", index);
   }
 
+  // Проверяем совпадение только если выбраны оба элемента
   if (selectedLeftIndex != null && selectedRightIndex != null) {
     checkMatch();
   }
@@ -129,21 +148,33 @@ function handleCardClick(card) {
 function toggleSelection(side, index) {
   if (side === "left") {
     const prev = selectedLeftIndex;
+
+    // Снимаем выделение с предыдущей карточки
+    if (prev != null) {
+      setCardSelected("left", prev, false);
+    }
+
+    // Если кликаем на ту же карточку, снимаем выделение
     if (prev === index) {
-      setCardSelected("left", index, false);
       selectedLeftIndex = null;
     } else {
-      if (prev != null) setCardSelected("left", prev, false);
+      // Выделяем новую карточку
       setCardSelected("left", index, true);
       selectedLeftIndex = index;
     }
   } else {
     const prev = selectedRightIndex;
+
+    // Снимаем выделение с предыдущей карточки
+    if (prev != null) {
+      setCardSelected("right", prev, false);
+    }
+
+    // Если кликаем на ту же карточку, снимаем выделение
     if (prev === index) {
-      setCardSelected("right", index, false);
       selectedRightIndex = null;
     } else {
-      if (prev != null) setCardSelected("right", prev, false);
+      // Выделяем новую карточку
       setCardSelected("right", index, true);
       selectedRightIndex = index;
     }
@@ -191,6 +222,7 @@ function handleCorrectPair(leftCard, rightCard) {
   const rightIdx = Number(rightCard.dataset.index);
   const matchedId = Number(leftCard.dataset.pairId);
 
+  // Сбрасываем выбранные индексы ДО замены слов
   selectedLeftIndex = null;
   selectedRightIndex = null;
 
@@ -219,6 +251,7 @@ function handleCorrectPair(leftCard, rightCard) {
     leftCard.classList.remove("fading-out", "matched");
     rightCard.classList.remove("fading-out", "matched");
 
+    // Разблокируем взаимодействие
     isInteractionLocked = false;
   }, 2000);
 }
@@ -234,8 +267,12 @@ function handleWrongPair(leftCard, rightCard) {
     // Убираем подсветку ошибки и выделение
     leftCard.classList.remove("error", "selected");
     rightCard.classList.remove("error", "selected");
+
+    // Сбрасываем выбранные индексы
     selectedLeftIndex = null;
     selectedRightIndex = null;
+
+    // Разблокируем взаимодействие
     isInteractionLocked = false;
   }, 800);
 }
