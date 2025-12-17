@@ -9,6 +9,9 @@ const MAX_ACTIVE_WORDS = 5;
 const SPAWN_INTERVAL_MS = 2000;
 const INITIAL_FALL_SPEED = 40; // px / sec
 
+// Константа для ключа хранилища прогресса (должна совпадать с dictionary.js)
+const STORAGE_KEY = 'english_trainer_progress';
+
 let allWords = []; // Все слова из words.json
 let activeWords = [];
 let lastTimestamp = null;
@@ -34,6 +37,38 @@ async function loadGameWords() {
     }));
   } catch (err) {
     console.error(err);
+  }
+}
+
+// НОВАЯ ФУНКЦИЯ: Обновление прогресса слова в словаре
+function updateWordProgressInDictionary(wordId) {
+  try {
+    // Получаем текущий прогресс из localStorage
+    const progressJson = localStorage.getItem(STORAGE_KEY);
+    let userProgress = {};
+
+    if (progressJson) {
+      userProgress = JSON.parse(progressJson);
+    }
+
+    // Инициализируем прогресс для слова, если его нет
+    if (!userProgress[wordId]) {
+      userProgress[wordId] = {
+        score: 0,
+        study: false
+      };
+    }
+
+    // Увеличиваем счетчик, но не больше 10
+    if (userProgress[wordId].score < 10) {
+      userProgress[wordId].score++;
+    }
+
+    // Сохраняем обновленный прогресс
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(userProgress));
+
+  } catch (error) {
+    console.error("Ошибка при обновлении прогресса слова:", error);
   }
 }
 
@@ -250,6 +285,9 @@ function destroyWord(word) {
       word.element.parentNode.removeChild(word.element);
     }
   }, 400);
+
+  // ДОБАВЛЕНО: Обновляем прогресс слова в словаре
+  updateWordProgressInDictionary(word.id);
 }
 
 // Обновление скорости из слайдера
