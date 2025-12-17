@@ -14,6 +14,9 @@ const leftContainer = document.getElementById("column-left");
 const rightContainer = document.getElementById("column-right");
 const resetBtn = document.getElementById("reset-btn");
 
+// Константа для ключа хранилища прогресса (должна совпадать с dictionary.js)
+const STORAGE_KEY = 'english_trainer_progress';
+
 async function loadWords() {
   try {
     const response = await fetch("words.json", { cache: "no-cache" });
@@ -210,6 +213,64 @@ function checkMatch() {
   }
 }
 
+// НОВАЯ ФУНКЦИЯ: Обновление прогресса слова в словаре
+function updateWordProgressInDictionary(wordId) {
+  try {
+    // Получаем текущий прогресс из localStorage
+    const progressJson = localStorage.getItem(STORAGE_KEY);
+    let userProgress = {};
+
+    if (progressJson) {
+      userProgress = JSON.parse(progressJson);
+    }
+
+    // Инициализируем прогресс для слова, если его нет
+    if (!userProgress[wordId]) {
+      userProgress[wordId] = {
+        score: 0,
+        study: false
+      };
+    }
+
+    // Увеличиваем счетчик, но не больше 10
+    if (userProgress[wordId].score < 10) {
+      userProgress[wordId].score++;
+    }
+
+    // Сохраняем обновленный прогресс
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(userProgress));
+
+    // Обновляем список изучаемых слов для тренажёров
+    updateStudyWordsForTrainers(userProgress);
+
+  } catch (error) {
+    console.error("Ошибка при обновлении прогресса слова:", error);
+  }
+}
+
+// НОВАЯ ФУНКЦИЯ: Обновление списка изучаемых слов
+function updateStudyWordsForTrainers(userProgress) {
+  try {
+    // Находим все слова с изучением и счетом меньше 10
+    const studyWords = [];
+
+    // Нужно получить список всех слов для проверки
+    // Временно загрузим words.json или используем allPairs
+    if (allPairs && allPairs.length > 0) {
+      allPairs.forEach(pair => {
+        if (userProgress[pair.id]?.study && userProgress[pair.id]?.score < 10) {
+          studyWords.push(pair.id);
+        }
+      });
+    }
+
+    // Сохраняем в отдельный ключ для использования в тренажёрах
+    localStorage.setItem('english_trainer_selected_words', JSON.stringify(studyWords));
+  } catch (error) {
+    console.error("Ошибка при обновлении изучаемых слов:", error);
+  }
+}
+
 function handleCorrectPair(leftCard, rightCard) {
   // Помечаем карточки как анимирующиеся
   leftCard.dataset.isAnimating = "true";
@@ -260,6 +321,9 @@ function handleCorrectPair(leftCard, rightCard) {
     leftCard.dataset.isAnimating = "false";
     rightCard.dataset.isAnimating = "false";
   }, 2000);
+
+  // ДОБАВЛЕНО: Обновляем прогресс слова в словаре
+  updateWordProgressInDictionary(matchedId);
 }
 
 function handleWrongPair(leftCard, rightCard) {
