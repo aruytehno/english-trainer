@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>English Trainer – Словарь</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="dictionary.css" />
+</head>
+<body>
+  <div class="app app-dictionary">
+    <header class="app-header">
+      <nav class="nav-tabs">
+        <a href="index.html" class="nav-tab">Домой</a>
+        <a href="trainer.html" class="nav-tab">Тренажёр пар слов</a>
+        <a href="game.html" class="nav-tab">Лазерные слова</a>
+        <a href="quiz.html" class="nav-tab">Quiz Mode</a>
+        <span class="nav-tab nav-tab-active">Словарь</span>
+      </nav>
+      <h1 class="title">Мой словарь</h1>
+    </header>
+
+    <main class="dictionary-main">
+      <div class="dictionary-stats">
+        <div class="stat-card">
+          <span class="stat-label">Всего слов:</span>
+          <span id="total-words" class="stat-value">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Изучаю:</span>
+          <span id="study-words" class="stat-value">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Средний балл:</span>
+          <span id="average-score" class="stat-value">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Выучено:</span>
+          <span id="learned-words" class="stat-value">0</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="toggle-study-btn" class="action-btn">
+          Показать изучаемые слова
+        </button>
+        <button id="reset-progress-btn" class="action-btn secondary">
+          Сбросить прогресс
+        </button>
+        <div class="file-actions">
+          <button id="export-btn" class="action-btn">
+            📤 Экспорт прогресса
+          </button>
+          <label for="import-file" class="action-btn secondary">
+            📥 Импорт прогресса
+            <input type="file" id="import-file" accept=".json,.txt" style="display: none;">
+          </label>
+        </div>
+      </div>
+
+      <div class="search-container">
+        <input
+          type="text"
+          id="search-input"
+          class="search-input"
+          placeholder="Поиск по русскому или английскому слову..."
+        />
+        <button id="clear-search-btn" class="clear-search-btn">×</button>
+      </div>
+
+      <div class="words-table-container">
+        <table class="words-table">
+          <thead>
+            <tr>
+              <th class="col-check">
+                <input type="checkbox" id="select-all-checkbox">
+              </th>
+              <th class="col-word">Английское слово</th>
+              <th class="col-translation">Русский перевод</th>
+              <th class="col-status">Статус</th>
+              <th class="col-score">Баллы</th>
+              <th class="col-progress">Прогресс</th>
+              <th class="col-actions">Действия</th>
+            </tr>
+          </thead>
+          <tbody id="words-table-body">
+            <!-- Слова будут загружены через JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="bulk-actions" style="display: none;" id="bulk-actions">
+        <span id="selected-count">Выбрано: 0 слов</span>
+        <button id="bulk-study-btn" class="action-btn small">Добавить в изучаемые</button>
+        <button id="bulk-remove-study-btn" class="action-btn small secondary">Убрать из изучаемых</button>
+        <button id="bulk-clear-btn" class="action-btn small secondary">Снять выбор</button>
+      </div>
+
+      <div class="progress-info">
+        <h3>Система баллов:</h3>
+        <div class="score-levels">
+          <div class="score-level">
+            <span class="score-badge score-1">1</span>
+            <span class="score-label">Начальный уровень</span>
+          </div>
+          <div class="score-level">
+            <span class="score-badge score-5">5</span>
+            <span class="score-label">Средний уровень</span>
+          </div>
+          <div class="score-level">
+            <span class="score-badge score-10">10</span>
+            <span class="score-label">Выучено!</span>
+          </div>
+        </div>
+        <p class="info-text">
+          Слова со статусом "Изучаю" будут появляться в тренажёрах до тех пор, пока не достигнут 10 баллов.
+        </p>
+      </div>
+    </main>
+  </div>
+
+  <script src="dictionary.js"></script>
+</body>
+</html>
