@@ -1,0 +1,112 @@
+.app-game {
+  max-width: 900px;
+}
+
+.game-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.game-area {
+  position: relative;
+  border-radius: 16px;
+  background: radial-gradient(circle at top, #020617, #020617);
+  border: 1px solid rgba(30, 64, 175, 0.7);
+  height: 360px;
+  overflow: hidden;
+  box-shadow: inset 0 0 30px rgba(15, 23, 42, 0.8);
+}
+
+.falling-word {
+  position: absolute;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(129, 140, 248, 0.9);
+  color: #e5e7eb;
+  font-size: 14px;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.55);
+  transform: translate(-50%, -50%);
+}
+
+.falling-word.exploding {
+  animation: word-pop 0.35s ease-out forwards;
+}
+
+.laser-beam {
+  position: absolute;
+  width: 3px;
+  background: linear-gradient(to top, #38bdf8, #1d4ed8);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.9);
+  border-radius: 999px;
+  transform-origin: bottom center;
+  animation: laser-shot 0.3s ease-out forwards;
+}
+
+.game-input-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.game-input {
+  width: 100%;
+  max-width: 360px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(15, 23, 42, 0.9);
+  color: #f9fafb;
+  font-size: 15px;
+  outline: none;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.7);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.game-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 16px 40px rgba(37, 99, 235, 0.6);
+  background: rgba(15, 23, 42, 1);
+}
+
+@keyframes laser-shot {
+  0% {
+    opacity: 0;
+    transform: scaleY(0.1);
+  }
+  40% {
+    opacity: 1;
+    transform: scaleY(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleY(0.6);
+  }
+}
+
+@keyframes word-pop {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.7);
+  }
+}
+
+@media (max-width: 640px) {
+  .game-area {
+    height: 300px;
+  }
+}
+
+

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>English Trainer – Laser Words</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="game.css" />
+</head>
+<body>
+  <div class="app app-game">
+    <header class="app-header">
+      <nav class="nav-tabs">
+        <a href="index.html" class="nav-tab">Домой</a>
+        <a href="trainer.html" class="nav-tab">Тренажёр пар слов</a>
+        <span class="nav-tab nav-tab-active">Лазерные слова</span>
+      </nav>
+      <h1 class="title">Laser Words: Пиши и уничтожай</h1>
+    </header>
+
+    <main class="game-main">
+      <div class="game-area" id="game-area"></div>
+
+      <div class="game-input-wrapper">
+        <input
+          type="text"
+          id="word-input"
+          class="game-input"
+          placeholder="Напечатай слово и нажми Enter..."
+          autocomplete="off"
+        />
+      </div>
+    </main>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
+
+
