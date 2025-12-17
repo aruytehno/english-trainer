@@ -16,6 +16,9 @@ const resultCorrectEl = document.getElementById("result-correct");
 const resultIncorrectEl = document.getElementById("result-incorrect");
 const resultAccuracyEl = document.getElementById("result-accuracy");
 
+// Константа для ключа хранилища прогресса (должна совпадать с dictionary.js)
+const STORAGE_KEY = 'english_trainer_progress';
+
 let allWords = [];
 let currentWords = [];
 let currentQuestion = null;
@@ -45,6 +48,38 @@ async function loadWords() {
   } catch (err) {
     console.error(err);
     wordToTranslate.textContent = "Ошибка загрузки слов";
+  }
+}
+
+// НОВАЯ ФУНКЦИЯ: Обновление прогресса слова в словаре
+function updateWordProgressInDictionary(wordId) {
+  try {
+    // Получаем текущий прогресс из localStorage
+    const progressJson = localStorage.getItem(STORAGE_KEY);
+    let userProgress = {};
+
+    if (progressJson) {
+      userProgress = JSON.parse(progressJson);
+    }
+
+    // Инициализируем прогресс для слова, если его нет
+    if (!userProgress[wordId]) {
+      userProgress[wordId] = {
+        score: 0,
+        study: false
+      };
+    }
+
+    // Увеличиваем счетчик, но не больше 10
+    if (userProgress[wordId].score < 10) {
+      userProgress[wordId].score++;
+    }
+
+    // Сохраняем обновленный прогресс
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(userProgress));
+
+  } catch (error) {
+    console.error("Ошибка при обновлении прогресса слова:", error);
   }
 }
 
@@ -160,6 +195,9 @@ function handleOptionClick(button, option) {
     // Правильный ответ
     button.classList.add("correct");
     score.correct++;
+
+    // ДОБАВЛЕНО: Обновляем прогресс слова в словаре
+    updateWordProgressInDictionary(currentQuestion.id);
 
     // Через 1 секунду автоматически переходим к следующему вопросу
     setTimeout(() => {
