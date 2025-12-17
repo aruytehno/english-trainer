@@ -9,7 +9,6 @@ let rightActive = new Array(RIGHT_SIZE);
 
 let selectedLeftIndex = null;
 let selectedRightIndex = null;
-let isInteractionLocked = false;
 
 const leftContainer = document.getElementById("column-left");
 const rightContainer = document.getElementById("column-right");
@@ -47,7 +46,6 @@ function initializeBoard() {
   rightActive = new Array(RIGHT_SIZE);
   selectedLeftIndex = null;
   selectedRightIndex = null;
-  isInteractionLocked = false;
 
   leftContainer.innerHTML = "";
   rightContainer.innerHTML = "";
@@ -101,6 +99,8 @@ function createWordCard(side, index, item) {
   card.dataset.side = side;
   card.dataset.index = index.toString();
   card.dataset.pairId = item.id.toString();
+  card.dataset.isAnimating = "false"; // Флаг для анимации
+
   const span = document.createElement("span");
   span.textContent = item.text;
   card.appendChild(span);
@@ -110,7 +110,10 @@ function createWordCard(side, index, item) {
 }
 
 function handleCardClick(card) {
-  if (isInteractionLocked) return;
+  // Не обрабатываем клики по карточкам, которые в процессе анимации
+  if (card.dataset.isAnimating === "true") {
+    return;
+  }
 
   const side = card.dataset.side;
   const index = Number(card.dataset.index);
@@ -208,7 +211,9 @@ function checkMatch() {
 }
 
 function handleCorrectPair(leftCard, rightCard) {
-  isInteractionLocked = true;
+  // Помечаем карточки как анимирующиеся
+  leftCard.dataset.isAnimating = "true";
+  rightCard.dataset.isAnimating = "true";
 
   // Подсвечиваем оба слова зелёным
   leftCard.classList.add("matched");
@@ -233,10 +238,10 @@ function handleCorrectPair(leftCard, rightCard) {
     rightCard.classList.add("fading-out");
   }, 300);
 
-  setTimeout(() => {
-    // Получаем новую пару слов
-    const newPair = getNextUnusedPair(matchedId) || allPairs[0];
+  // Получаем новую пару слов сразу (не ждем окончания анимации)
+  const newPair = getNextUnusedPair(matchedId) || allPairs[0];
 
+  setTimeout(() => {
     const newLeft = { id: newPair.id, text: newPair.en };
     const newRight = { id: newPair.id, text: newPair.ru };
 
@@ -251,13 +256,16 @@ function handleCorrectPair(leftCard, rightCard) {
     leftCard.classList.remove("fading-out", "matched");
     rightCard.classList.remove("fading-out", "matched");
 
-    // Разблокируем взаимодействие
-    isInteractionLocked = false;
+    // Снимаем флаг анимации - карточки снова кликабельны
+    leftCard.dataset.isAnimating = "false";
+    rightCard.dataset.isAnimating = "false";
   }, 2000);
 }
 
 function handleWrongPair(leftCard, rightCard) {
-  isInteractionLocked = true;
+  // Помечаем карточки как анимирующиеся на время анимации ошибки
+  leftCard.dataset.isAnimating = "true";
+  rightCard.dataset.isAnimating = "true";
 
   // Подсвечиваем ошибку красным
   leftCard.classList.add("error");
@@ -268,12 +276,13 @@ function handleWrongPair(leftCard, rightCard) {
     leftCard.classList.remove("error", "selected");
     rightCard.classList.remove("error", "selected");
 
+    // Снимаем флаг анимации
+    leftCard.dataset.isAnimating = "false";
+    rightCard.dataset.isAnimating = "false";
+
     // Сбрасываем выбранные индексы
     selectedLeftIndex = null;
     selectedRightIndex = null;
-
-    // Разблокируем взаимодействие
-    isInteractionLocked = false;
   }, 800);
 }
 
