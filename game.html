@@ -18,6 +18,31 @@
     </header>
 
     <main class="game-main">
+      <div class="game-info">
+        <div class="lives-container">
+          <span class="lives-label">Жизни:</span>
+          <div class="hearts">
+            <span class="heart" data-live="1">❤️</span>
+            <span class="heart" data-live="2">❤️</span>
+            <span class="heart" data-live="3">❤️</span>
+            <span class="heart" data-live="4">❤️</span>
+            <span class="heart" data-live="5">❤️</span>
+            <span class="heart" data-live="6">❤️</span>
+            <span class="heart" data-live="7">❤️</span>
+            <span class="heart" data-live="8">❤️</span>
+            <span class="heart" data-live="9">❤️</span>
+            <span class="heart" data-live="10">❤️</span>
+          </div>
+        </div>
+        <button id="restart-btn" class="restart-btn">Начать заново</button>
+      </div>
+
+      <div class="speed-control">
+        <label for="speed-slider">Скорость падения:</label>
+        <input type="range" id="speed-slider" min="20" max="150" value="40">
+        <span id="speed-value">40 px/сек</span>
+      </div>
+
       <div class="game-area" id="game-area"></div>
 
       <div class="game-input-wrapper">
@@ -25,7 +50,7 @@
           type="text"
           id="word-input"
           class="game-input"
-          placeholder="Напечатай слово и нажми Enter..."
+          placeholder="Введите перевод слова на английском и нажмите Enter..."
           autocomplete="off"
         />
       </div>
@@ -35,5 +60,3 @@
   <script src="game.js"></script>
 </body>
 </html>
-
-

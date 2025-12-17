@@ -1,16 +1,24 @@
 const gameArea = document.getElementById("game-area");
 const wordInput = document.getElementById("word-input");
+const speedSlider = document.getElementById("speed-slider");
+const speedValue = document.getElementById("speed-value");
+const restartBtn = document.getElementById("restart-btn");
+const hearts = document.querySelectorAll(".heart");
 
 const MAX_ACTIVE_WORDS = 5;
 const SPAWN_INTERVAL_MS = 2000;
-const BASE_FALL_SPEED = 40; // px / sec
+const INITIAL_FALL_SPEED = 40; // px / sec
 
-let gameWords = [];
+let allWords = []; // Все слова из words.json
 let activeWords = [];
 let lastTimestamp = null;
 let spawnTimer = 0;
 let isGameRunning = false;
+let currentSpeed = INITIAL_FALL_SPEED;
+let lives = 10;
+let gameStarted = false;
 
+// Загружаем слова из JSON
 async function loadGameWords() {
   try {
     const response = await fetch("words.json", { cache: "no-cache" });
@@ -18,47 +26,70 @@ async function loadGameWords() {
       throw new Error("Не удалось загрузить words.json для игры");
     }
     const data = await response.json();
-    gameWords = data.map((item) => ({
+    // Создаем пары: русское слово (падает) -> английский перевод (вводим)
+    allWords = data.map((item) => ({
       id: item.id,
-      text: item.en,
+      russian: item.ru, // Слово падает на русском
+      english: item.en  // Перевод вводим на английском
     }));
-    startGame();
   } catch (err) {
     console.error(err);
   }
 }
 
-function startGame() {
-  activeWords.forEach((w) => {
-    if (w.element && w.element.parentNode) {
-      w.element.parentNode.removeChild(w.element);
+// Обновляем отображение жизней
+function updateLivesDisplay() {
+  hearts.forEach((heart, index) => {
+    if (index < lives) {
+      heart.classList.remove("lost");
+    } else {
+      heart.classList.add("lost");
     }
   });
-  activeWords = [];
+}
 
+// Запуск игры
+function startGame() {
+  // Очищаем игровое поле
+  gameArea.innerHTML = "";
+
+  // Сбрасываем состояние
+  activeWords = [];
   lastTimestamp = null;
   spawnTimer = 0;
   isGameRunning = true;
+  lives = 10;
+  gameStarted = true;
 
-  for (let i = 0; i < 3; i += 1) {
-    spawnWord();
-  }
+  // Обновляем отображение
+  updateLivesDisplay();
 
-  requestAnimationFrame(gameLoop);
+  // Блокируем слайдер во время игры
+  speedSlider.disabled = true;
+
+  // Фокусируемся на поле ввода
   if (wordInput) {
     wordInput.value = "";
     wordInput.focus();
   }
+
+  // Запускаем игровой цикл
+  requestAnimationFrame(gameLoop);
 }
 
+// Создание падающего слова
 function spawnWord() {
-  if (!gameWords.length || activeWords.length >= MAX_ACTIVE_WORDS) return;
-  const base = gameWords[Math.floor(Math.random() * gameWords.length)];
+  if (!allWords.length || activeWords.length >= MAX_ACTIVE_WORDS || !isGameRunning) return;
 
+  const wordData = allWords[Math.floor(Math.random() * allWords.length)];
+
+  // Создаем элемент слова
   const wordElem = document.createElement("div");
   wordElem.className = "falling-word";
-  wordElem.textContent = base.text;
+  wordElem.textContent = wordData.russian; // Показываем русское слово
+  wordElem.dataset.english = wordData.english.toLowerCase(); // Сохраняем английский перевод
 
+  // Позиционируем в случайном месте сверху
   const areaRect = gameArea.getBoundingClientRect();
   const xPercent = 10 + Math.random() * 80;
 
@@ -67,18 +98,23 @@ function spawnWord() {
 
   gameArea.appendChild(wordElem);
 
-  const instance = {
-    id: base.id,
-    text: base.text,
+  // Создаем объект слова
+  const wordInstance = {
+    id: wordData.id,
+    russian: wordData.russian,
+    english: wordData.english,
+    element: wordElem,
     xPercent,
     yPercent: -10,
-    speed: BASE_FALL_SPEED + Math.random() * 25,
-    element: wordElem,
+    speed: currentSpeed + Math.random() * 25,
+    isDestroyed: false
   };
 
-  activeWords.push(instance);
+  activeWords.push(wordInstance);
+  return wordInstance;
 }
 
+// Игровой цикл
 function gameLoop(timestamp) {
   if (!isGameRunning) return;
 
@@ -86,6 +122,7 @@ function gameLoop(timestamp) {
   const delta = (timestamp - lastTimestamp) / 1000;
   lastTimestamp = timestamp;
 
+  // Генерация новых слов
   spawnTimer += delta * 1000;
   if (spawnTimer >= SPAWN_INTERVAL_MS) {
     spawnTimer = 0;
@@ -95,104 +132,165 @@ function gameLoop(timestamp) {
   const areaRect = gameArea.getBoundingClientRect();
   const heightPx = areaRect.height;
 
-  for (let i = activeWords.length - 1; i >= 0; i -= 1) {
-    const w = activeWords[i];
-    const dy = (w.speed * delta * 100) / heightPx;
-    w.yPercent += dy;
+  // Обновление позиций слов
+  for (let i = activeWords.length - 1; i >= 0; i--) {
+    const word = activeWords[i];
 
-    if (w.element) {
-      w.element.style.top = `${w.yPercent}%`;
+    if (word.isDestroyed) {
+      continue;
     }
 
-    if (w.yPercent > 120) {
-      if (w.element && w.element.parentNode) {
-        w.element.parentNode.removeChild(w.element);
+    // Двигаем слово вниз
+    const dy = (word.speed * delta * 100) / heightPx;
+    word.yPercent += dy;
+
+    // Обновляем позицию
+    if (word.element) {
+      word.element.style.top = `${word.yPercent}%`;
+    }
+
+    // Проверяем, упало ли слово за нижнюю границу
+    if (word.yPercent > 110) {
+      // Удаляем слово
+      if (word.element && word.element.parentNode) {
+        word.element.parentNode.removeChild(word.element);
       }
       activeWords.splice(i, 1);
+
+      // Отнимаем жизнь
+      loseLife();
     }
   }
 
+  // Проверяем условие проигрыша
+  if (lives <= 0) {
+    gameOver();
+    return;
+  }
+
+  // Продолжаем игровой цикл
   requestAnimationFrame(gameLoop);
 }
 
-function handleInput(e) {
-  if (e.key !== "Enter") return;
-  const value = wordInput.value.trim().toLowerCase();
-  if (!value) return;
+// Потеря жизни
+function loseLife() {
+  if (lives > 0) {
+    lives--;
+    updateLivesDisplay();
+  }
+}
 
-  const matchIndex = activeWords.findIndex(
-    (w) => w.text.toLowerCase() === value,
+// Конец игры
+function gameOver() {
+  isGameRunning = false;
+
+  // Создаем overlay с сообщением
+  const gameOverDiv = document.createElement("div");
+  gameOverDiv.className = "game-over";
+  gameOverDiv.innerHTML = `
+    <h2>Игра окончена!</h2>
+    <p>У вас закончились жизни</p>
+    <button id="play-again-btn" class="restart-btn">Играть снова</button>
+  `;
+
+  gameArea.appendChild(gameOverDiv);
+
+  // Обработчик для кнопки "Играть снова"
+  document.getElementById("play-again-btn").addEventListener("click", () => {
+    gameArea.removeChild(gameOverDiv);
+    startGame();
+  });
+
+  // Разблокируем слайдер
+  speedSlider.disabled = false;
+}
+
+// Обработка ввода пользователя
+function handleInput(e) {
+  if (e.key !== "Enter" || !isGameRunning) return;
+
+  const inputValue = wordInput.value.trim().toLowerCase();
+  if (!inputValue) return;
+
+  // Ищем слово с соответствующим переводом
+  const matchedWordIndex = activeWords.findIndex(
+    (word) => word.english.toLowerCase() === inputValue && !word.isDestroyed
   );
-  if (matchIndex === -1) {
+
+  if (matchedWordIndex === -1) {
+    // Неправильный ввод - просто очищаем поле
     wordInput.value = "";
     return;
   }
 
-  const target = activeWords[matchIndex];
-  fireLaserAt(target);
+  // Нашли совпадение - уничтожаем слово
+  const targetWord = activeWords[matchedWordIndex];
+  destroyWord(targetWord);
+
+  // Очищаем поле ввода
   wordInput.value = "";
 }
 
-function fireLaserAt(target) {
-  if (!target || !target.element) return;
+// Уничтожение слова с эффектом
+function destroyWord(word) {
+  if (!word || word.isDestroyed) return;
 
-  const areaRect = gameArea.getBoundingClientRect();
-  const inputRect = wordInput.getBoundingClientRect();
-  const wordRect = target.element.getBoundingClientRect();
+  word.isDestroyed = true;
 
-  const startX = inputRect.left + inputRect.width / 2 - areaRect.left;
-  const startY = inputRect.top - areaRect.top;
+  // Эффект исчезновения
+  word.element.classList.add("fading-out");
 
-  const endX = wordRect.left + wordRect.width / 2 - areaRect.left;
-  const endY = wordRect.top + wordRect.height / 2 - areaRect.top;
-
-  const dx = endX - startX;
-  const dy = endY - startY;
-  const distance = Math.sqrt(dx * dx + dy * dy);
-  const angleDeg = (Math.atan2(dy, dx) * 180) / Math.PI - 90;
-
-  const beam = document.createElement("div");
-  beam.className = "laser-beam";
-  beam.style.left = `${startX}px`;
-  beam.style.top = `${startY}px`;
-  beam.style.height = `${distance}px`;
-  beam.style.transform = `rotate(${angleDeg}deg)`;
-
-  gameArea.appendChild(beam);
-
-  target.element.classList.add("exploding");
-
-  const removeTarget = () => {
-    const idx = activeWords.indexOf(target);
-    if (idx !== -1) {
-      activeWords.splice(idx, 1);
+  // Удаляем слово после анимации
+  setTimeout(() => {
+    const index = activeWords.indexOf(word);
+    if (index !== -1) {
+      activeWords.splice(index, 1);
     }
-    if (target.element && target.element.parentNode) {
-      target.element.parentNode.removeChild(target.element);
+    if (word.element && word.element.parentNode) {
+      word.element.parentNode.removeChild(word.element);
     }
-    spawnWord();
-  };
-
-  target.element.addEventListener(
-    "animationend",
-    () => {
-      removeTarget();
-    },
-    { once: true },
-  );
-
-  beam.addEventListener(
-    "animationend",
-    () => {
-      if (beam.parentNode) {
-        beam.parentNode.removeChild(beam);
-      }
-    },
-    { once: true },
-  );
+  }, 400);
 }
 
-wordInput.addEventListener("keydown", handleInput);
-window.addEventListener("load", loadGameWords);
+// Обновление скорости из слайдера
+function updateSpeed() {
+  if (gameStarted) return; // Не позволяем менять скорость во время игры
 
+  currentSpeed = parseInt(speedSlider.value);
+  speedValue.textContent = `${currentSpeed} px/сек`;
+}
 
+// Инициализация
+async function init() {
+  await loadGameWords();
+
+  // Настройка слайдера скорости
+  speedSlider.value = INITIAL_FALL_SPEED;
+  speedValue.textContent = `${INITIAL_FALL_SPEED} px/сек`;
+
+  speedSlider.addEventListener("input", updateSpeed);
+
+  // Кнопка перезапуска
+  restartBtn.addEventListener("click", () => {
+    if (gameStarted) {
+      // Если игра идет, останавливаем ее
+      isGameRunning = false;
+      gameStarted = false;
+    }
+
+    // Разблокируем слайдер
+    speedSlider.disabled = false;
+
+    // Запускаем новую игру
+    startGame();
+  });
+
+  // Обработка ввода
+  wordInput.addEventListener("keydown", handleInput);
+
+  // Инициализируем отображение жизней
+  updateLivesDisplay();
+}
+
+// Запуск при загрузке страницы
+window.addEventListener("load", init);
