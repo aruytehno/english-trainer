@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>English Trainer – Quiz Mode</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="quiz.css" />
+</head>
+<body>
+  <div class="app app-quiz">
+    <header class="app-header">
+      <nav class="nav-tabs">
+        <a href="index.html" class="nav-tab">Домой</a>
+        <a href="trainer.html" class="nav-tab">Тренажёр пар слов</a>
+        <a href="game.html" class="nav-tab">Лазерные слова</a>
+        <span class="nav-tab nav-tab-active">Quiz Mode</span>
+      </nav>
+      <h1 class="title">Выбор правильного перевода</h1>
+    </header>
+
+    <main class="quiz-main">
+      <div class="quiz-stats">
+        <div class="stat-item">
+          <span class="stat-label">Всего слов:</span>
+          <span id="total-words" class="stat-value">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Осталось:</span>
+          <span id="remaining-words" class="stat-value">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Правильно:</span>
+          <span id="correct-count" class="stat-value correct">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Неправильно:</span>
+          <span id="incorrect-count" class="stat-value incorrect">0</span>
+        </div>
+        <button id="reset-quiz-btn" class="restart-btn">Начать заново</button>
+      </div>
+
+      <div class="quiz-card">
+        <div class="word-to-translate" id="word-to-translate">
+          Загрузка...
+        </div>
+
+        <div class="options-container" id="options-container">
+          <!-- Варианты ответов будут добавлены через JS -->
+        </div>
+
+        <div class="quiz-controls">
+          <button id="next-btn" class="next-btn" style="display: none;">
+            Продолжить
+          </button>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-result" id="quiz-result" style="display: none;">
+        <h2>Результаты теста!</h2>
+        <div class="result-stats">
+          <div class="result-stat">
+            <span class="result-label">Всего слов:</span>
+            <span id="result-total" class="result-value">0</span>
+          </div>
+          <div class="result-stat">
+            <span class="result-label">Правильных ответов:</span>
+            <span id="result-correct" class="result-value correct">0</span>
+          </div>
+          <div class="result-stat">
+            <span class="result-label">Неправильных ответов:</span>
+            <span id="result-incorrect" class="result-value incorrect">0</span>
+          </div>
+          <div class="result-stat">
+            <span class="result-label">Точность:</span>
+            <span id="result-accuracy" class="result-value">0%</span>
+          </div>
+        </div>
+        <button id="try-again-btn" class="restart-btn">Попробовать снова</button>
+      </div>
+    </main>
+  </div>
+
+  <script src="quiz.js"></script>
+</body>
+</html>
