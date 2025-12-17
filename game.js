@@ -9,6 +9,10 @@ const MAX_ACTIVE_WORDS = 5;
 const SPAWN_INTERVAL_MS = 2000;
 const INITIAL_FALL_SPEED = 40; // px / sec
 
+// Константы для связи со словарем (должны совпадать с dictionary.js)
+const STORAGE_KEY = 'english_trainer_progress';
+const SELECTED_WORDS_KEY = 'english_trainer_selected_words';
+
 let allWords = []; // Все слова из words.json
 let activeWords = [];
 let lastTimestamp = null;
@@ -18,6 +22,19 @@ let currentSpeed = INITIAL_FALL_SPEED;
 let lives = 10;
 let gameStarted = false;
 
+// Получение изучаемых слов
+function getStudyWords() {
+  const studyWordsJson = localStorage.getItem(SELECTED_WORDS_KEY);
+  if (studyWordsJson) {
+    try {
+      return JSON.parse(studyWordsJson);
+    } catch (e) {
+      return [];
+    }
+  }
+  return [];
+}
+
 // Загружаем слова из JSON
 async function loadGameWords() {
   try {
@@ -26,14 +43,95 @@ async function loadGameWords() {
       throw new Error("Не удалось загрузить words.json для игры");
     }
     const data = await response.json();
-    // Создаем пары: русское слово (падает) -> английский перевод (вводим)
-    allWords = data.map((item) => ({
-      id: item.id,
-      russian: item.ru, // Слово падает на русском
-      english: item.en  // Перевод вводим на английском
-    }));
+
+    // Получаем изучаемые слова
+    const studyWordIds = getStudyWords();
+
+    if (studyWordIds.length > 0) {
+      // Если есть изучаемые слова - используем только их
+      allWords = data
+        .filter(item => studyWordIds.includes(item.id))
+        .map((item) => ({
+          id: item.id,
+          russian: item.ru, // Слово падает на русском
+          english: item.en  // Перевод вводим на английском
+        }));
+    } else {
+      // Иначе используем все слова
+      allWords = data.map((item) => ({
+        id: item.id,
+        russian: item.ru,
+        english: item.en
+      }));
+    }
+
+    // Если после фильтрации слов нет, используем все слова
+    if (allWords.length === 0) {
+      allWords = data.map((item) => ({
+        id: item.id,
+        russian: item.ru,
+        english: item.en
+      }));
+    }
+
   } catch (err) {
     console.error(err);
+  }
+}
+
+// Обновление прогресса слова в словаре
+function updateWordProgressInDictionary(wordId) {
+  try {
+    // Получаем текущий прогресс из localStorage
+    const progressJson = localStorage.getItem(STORAGE_KEY);
+    let userProgress = {};
+
+    if (progressJson) {
+      userProgress = JSON.parse(progressJson);
+    }
+
+    // Инициализируем прогресс для слова, если его нет
+    if (!userProgress[wordId]) {
+      userProgress[wordId] = {
+        score: 0,
+        study: false
+      };
+    }
+
+    // Увеличиваем счетчик, но не больше 10
+    if (userProgress[wordId].score < 10) {
+      userProgress[wordId].score++;
+    }
+
+    // Сохраняем обновленный прогресс
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(userProgress));
+
+    // Обновляем список изучаемых слов для тренажёров
+    updateStudyWordsForTrainers(userProgress);
+
+  } catch (error) {
+    console.error("Ошибка при обновлении прогресса слова:", error);
+  }
+}
+
+// Обновление списка изучаемых слов
+function updateStudyWordsForTrainers(userProgress) {
+  try {
+    // Находим все слова с изучением и счетом меньше 10
+    const studyWords = [];
+
+    if (allWords && allWords.length > 0) {
+      allWords.forEach(word => {
+        if (userProgress[word.id]?.study && userProgress[word.id]?.score < 10) {
+          studyWords.push(word.id);
+        }
+      });
+    }
+
+    // Сохраняем в отдельный ключ для использования в тренажёрах
+    localStorage.setItem(SELECTED_WORDS_KEY, JSON.stringify(studyWords));
+  } catch (error) {
+    console.error("Ошибка при обновлении изучаемых слов:", error);
   }
 }
 
@@ -88,6 +186,7 @@ function spawnWord() {
   wordElem.className = "falling-word";
   wordElem.textContent = wordData.russian; // Показываем русское слово
   wordElem.dataset.english = wordData.english.toLowerCase(); // Сохраняем английский перевод
+  wordElem.dataset.wordId = wordData.id; // Сохраняем ID слова
 
   // Позиционируем в случайном месте сверху
   const areaRect = gameArea.getBoundingClientRect();
@@ -250,6 +349,9 @@ function destroyWord(word) {
       word.element.parentNode.removeChild(word.element);
     }
   }, 400);
+
+  // Обновляем прогресс слова в словаре
+  updateWordProgressInDictionary(word.id);
 }
 
 // Обновление скорости из слайдера
@@ -281,8 +383,11 @@ async function init() {
     // Разблокируем слайдер
     speedSlider.disabled = false;
 
-    // Запускаем новую игру
-    startGame();
+    // Перезагружаем слова (на случай изменения списка изучаемых)
+    loadGameWords().then(() => {
+      // Запускаем новую игру
+      startGame();
+    });
   });
 
   // Обработка ввода
