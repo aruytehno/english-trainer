@@ -179,11 +179,13 @@ function checkMatch() {
 function handleCorrectPair(leftCard, rightCard) {
   isInteractionLocked = true;
 
+  // Подсвечиваем оба слова зелёным
+  leftCard.classList.add("matched");
+  rightCard.classList.add("matched");
+
+  // Убираем класс selected, так как у нас теперь matched
   leftCard.classList.remove("selected");
   rightCard.classList.remove("selected");
-
-  leftCard.classList.add("fading-out");
-  rightCard.classList.add("fading-out");
 
   const leftIdx = Number(leftCard.dataset.index);
   const rightIdx = Number(rightCard.dataset.index);
@@ -192,7 +194,15 @@ function handleCorrectPair(leftCard, rightCard) {
   selectedLeftIndex = null;
   selectedRightIndex = null;
 
+  // Ждем немного, чтобы пользователь увидел подсветку
   setTimeout(() => {
+    // Начинаем исчезновение
+    leftCard.classList.add("fading-out");
+    rightCard.classList.add("fading-out");
+  }, 300);
+
+  setTimeout(() => {
+    // Получаем новую пару слов
     const newPair = getNextUnusedPair(matchedId) || allPairs[0];
 
     const newLeft = { id: newPair.id, text: newPair.en };
@@ -201,11 +211,13 @@ function handleCorrectPair(leftCard, rightCard) {
     leftActive[leftIdx] = newLeft;
     rightActive[rightIdx] = newRight;
 
+    // Обновляем содержимое карточек
     updateCardContent(leftCard, newLeft);
     updateCardContent(rightCard, newRight);
 
-    leftCard.classList.remove("fading-out");
-    rightCard.classList.remove("fading-out");
+    // Убираем все классы анимации и подсветки
+    leftCard.classList.remove("fading-out", "matched");
+    rightCard.classList.remove("fading-out", "matched");
 
     isInteractionLocked = false;
   }, 2000);
@@ -214,16 +226,18 @@ function handleCorrectPair(leftCard, rightCard) {
 function handleWrongPair(leftCard, rightCard) {
   isInteractionLocked = true;
 
+  // Подсвечиваем ошибку красным
   leftCard.classList.add("error");
   rightCard.classList.add("error");
 
   setTimeout(() => {
+    // Убираем подсветку ошибки и выделение
     leftCard.classList.remove("error", "selected");
     rightCard.classList.remove("error", "selected");
     selectedLeftIndex = null;
     selectedRightIndex = null;
     isInteractionLocked = false;
-  }, 500);
+  }, 800);
 }
 
 function updateCardContent(card, item) {
@@ -240,5 +254,3 @@ resetBtn.addEventListener("click", () => {
 });
 
 window.addEventListener("load", loadWords);
-
-
