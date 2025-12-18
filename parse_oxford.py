@@ -1,208 +1,280 @@
-import re
+#!/usr/bin/env python3
+"""
+Парсер Oxford 3000 / 5000 Key Words (PDF) → words.json
+
+Требования:
+    pip install pdfplumber
+
+Запуск:
+    python parse_oxford.py
+"""
+
+import pdfplumber
 import json
-from collections import defaultdict
-import PyPDF2
+import re
+from pathlib import Path
 import sys
+from collections import defaultdict
+
+# -------------------- НАСТРОЙКИ --------------------
+
+PDF_FILES = [
+    "Oxford-3000-Key-Words.pdf",
+    "Oxford-5000-Key-Words.pdf",
+]
+
+OUTPUT_FILE = "words.json"
+
+# Уровни в порядке сложности для сортировки
+LEVEL_ORDER = ["A1", "A2", "B1", "B2", "C1"]
+LEVELS_SET = set(LEVEL_ORDER)
+
+# Регулярка для извлечения чистого слова (игнорируем части речи, скобки)
+WORD_RE = re.compile(r"^([a-zA-Z][a-zA-Z\-]*)")
 
 
-class OxfordDictionaryParser:
-    def __init__(self):
-        self.words_by_level = defaultdict(list)
-        self.all_words = set()
+# --------------------------------------------------
 
-    def extract_text_from_pdf(self, pdf_path):
-        """Извлекает текст из PDF файла"""
-        text = ""
-        try:
-            with open(pdf_path, 'rb') as file:
-                reader = PyPDF2.PdfReader(file)
-                for page in reader.pages:
-                    text += page.extract_text()
-        except Exception as e:
-            print(f"Ошибка чтения PDF {pdf_path}: {e}")
-            sys.exit(1)
-        return text
 
-    def parse_oxford_3000(self, text):
-        """Парсит Oxford 3000 (A1-B2)"""
-        print("Парсинг Oxford 3000...")
+def parse_oxford_3000_pdf(path: Path, start_id: int):
+    """
+    Парсит Oxford 3000 PDF (A1-B2 уровни)
+    """
+    words = []
+    current_level = None
+    word_id = start_id
 
-        # Определяем уровни и их порядок
-        levels_order = ["A1", "A2", "B1", "B2"]
-        current_level = None
-
-        lines = text.split('\n')
-        for line in lines:
-            line = line.strip()
-
-            # Ищем заголовки уровней
-            if re.match(r'^A[12]|B[12]$', line):
-                current_level = line
+    with pdfplumber.open(path) as pdf:
+        for page in pdf.pages:
+            text = page.extract_text()
+            if not text:
                 continue
 
-            # Пропускаем пустые строки и заголовки
-            if not line or 'Oxford' in line or '©' in line or line.isdigit():
-                continue
+            for line in text.splitlines():
+                line = line.strip()
 
-            # Извлекаем слова из строк
-            if current_level:
-                self._process_line(line, current_level)
+                # В Oxford 3000 уровни обозначены как A1, A2, B1, B2
+                if line in ["A1", "A2", "B1", "B2"]:
+                    current_level = line
+                    continue
 
-    def parse_oxford_5000(self, text):
-        """Парсит Oxford 5000 (B2-C1)"""
-        print("Парсинг Oxford 5000...")
+                # Пропускаем заголовки и пустые строки
+                if (not line or
+                        "Oxford" in line or
+                        "©" in line or
+                        line.isdigit() or
+                        "/" in line):
+                    continue
 
-        current_level = None
-        lines = text.split('\n')
-        in_b2_section = False
+                if not current_level:
+                    continue
 
-        for line in lines:
-            line = line.strip()
+                # Извлекаем слово (игнорируем части речи)
+                # Примеры строк: "absorb v", "abstract adj.", "match (contest/correspond) n., v."
+                clean_line = line.split()[0]  # Берем первое слово
 
-            # Ищем секцию B2 или C1
-            if line == "B2":
-                current_level = "B2"
-                in_b2_section = True
-                continue
-            elif line == "C1":
-                current_level = "C1"
-                in_b2_section = True
-                continue
-            elif "The Oxford 5000™ by CEFR level" in line:
-                in_b2_section = False
-                continue
+                # Убираем скобки и их содержимое
+                if '(' in clean_line:
+                    clean_line = clean_line.split('(')[0].strip()
 
-            # Пропускаем строки вне секций B2/C1
-            if not in_b2_section:
-                continue
+                # Убираем цифры в конце (например, "rose2")
+                clean_line = re.sub(r'\d+$', '', clean_line)
 
-            # Пропускаем пустые строки и заголовки
-            if not line or '©' in line or '/' in line:
-                continue
+                if not clean_line or not clean_line.isalpha():
+                    continue
 
-            # Извлекаем слова
-            if current_level:
-                self._process_line(line, current_level)
+                word = clean_line.lower()
 
-    def _process_line(self, line, level):
-        """Обрабатывает строку и извлекает слова"""
-        # Разбиваем строку на слова (разделители: пробелы, запятые, точки)
-        parts = re.split(r'[\s,\.]+', line)
-
-        for part in parts:
-            part = part.strip()
-
-            # Пропускаем пустые части и части речи
-            if not part or part in ['v', 'n', 'adj', 'adv', 'prep', 'pron', 'det', 'conj', 'exclam', 'modal', 'number']:
-                continue
-
-            # Убираем скобки и их содержимое
-            if '(' in part:
-                part = part.split('(')[0].strip()
-
-            # Убираем цифры в конце (например, "rose2")
-            part = re.sub(r'\d+$', '', part)
-
-            # Проверяем, что это слово (только буквы, может быть апостроф или дефис)
-            if part and re.match(r"^[a-zA-Z'\-]+$", part):
-                word = part.lower()
-
-                # Проверяем дубликаты
-                if word not in self.all_words:
-                    self.all_words.add(word)
-                    self.words_by_level[level].append(word)
-
-    def merge_and_sort_words(self):
-        """Объединяет и сортирует слова по уровням"""
-        print("Объединение и сортировка слов...")
-
-        # Порядок уровней от простых к сложным
-        level_order = ["A1", "A2", "B1", "B2", "C1"]
-        sorted_words = []
-
-        for level in level_order:
-            if level in self.words_by_level:
-                words = sorted(self.words_by_level[level])
-                sorted_words.extend(words)
-                print(f"  Уровень {level}: {len(words)} слов")
-
-        return sorted_words
-
-    def create_json_output(self, words):
-        """Создает JSON в нужном формате"""
-        print("Создание JSON...")
-
-        output = []
-        word_id = 1
-
-        for word in words:
-            # Определяем уровень слова
-            level = None
-            for lvl in ["A1", "A2", "B1", "B2", "C1"]:
-                if word in self.words_by_level[lvl]:
-                    level = lvl
-                    break
-
-            if level:
-                entry = {
+                words.append({
                     "id": word_id,
                     "en": word,
-                    "ru": "",  # Пустой перевод
-                    "level": level
-                }
-                output.append(entry)
+                    "ru": "",
+                    "level": current_level
+                })
                 word_id += 1
 
-        return output
+    return words, word_id
 
-    def save_to_json(self, data, output_path):
-        """Сохраняет данные в JSON файл"""
-        with open(output_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-        print(f"Сохранено в {output_path}")
-        print(f"Всего слов: {len(data)}")
+
+def parse_oxford_5000_pdf(path: Path, start_id: int):
+    """
+    Парсит Oxford 5000 PDF (B2-C1 уровни)
+    """
+    words = []
+    current_level = None
+    word_id = start_id
+    in_b2_c1_section = False
+
+    with pdfplumber.open(path) as pdf:
+        for page in pdf.pages:
+            text = page.extract_text()
+            if not text:
+                continue
+
+            for line in text.splitlines():
+                line = line.strip()
+
+                # В Oxford 5000 есть секции B2 и C1
+                if line == "B2" or line == "C1":
+                    current_level = line
+                    in_b2_c1_section = True
+                    continue
+
+                # Заголовок документа - выходим из секции
+                if "The Oxford 5000™ by CEFR level" in line:
+                    in_b2_c1_section = False
+                    continue
+
+                # Пропускаем строки вне секций B2/C1
+                if not in_b2_c1_section or not current_level:
+                    continue
+
+                # Пропускаем заголовки и пустые строки
+                if (not line or
+                        "Oxford" in line or
+                        "©" in line or
+                        "/" in line):
+                    continue
+
+                # Извлекаем слово (аналогично 3000)
+                clean_line = line.split()[0]
+
+                if '(' in clean_line:
+                    clean_line = clean_line.split('(')[0].strip()
+
+                clean_line = re.sub(r'\d+$', '', clean_line)
+
+                if not clean_line or not clean_line.isalpha():
+                    continue
+
+                word = clean_line.lower()
+
+                words.append({
+                    "id": word_id,
+                    "en": word,
+                    "ru": "",
+                    "level": current_level
+                })
+                word_id += 1
+
+    return words, word_id
+
+
+def deduplicate(words):
+    """
+    Убирает дубликаты по полю 'en' (одно слово может быть только один раз)
+    Сохраняет более низкий уровень для дубликатов (A1 приоритетнее C1)
+    """
+    level_priority = {level: i for i, level in enumerate(LEVEL_ORDER)}
+
+    unique_words = {}
+
+    for w in words:
+        word = w["en"]
+        level = w["level"]
+
+        if word not in unique_words:
+            unique_words[word] = w
+        else:
+            # Если слово уже есть, выбираем более низкий уровень
+            existing_level = unique_words[word]["level"]
+            if level_priority[level] < level_priority[existing_level]:
+                unique_words[word] = w
+
+    return list(unique_words.values())
+
+
+def sort_by_level_and_alphabet(words):
+    """
+    Сортирует слова: сначала по уровню (A1→C1), потом по алфавиту
+    """
+    level_order = {level: i for i, level in enumerate(LEVEL_ORDER)}
+
+    return sorted(words, key=lambda x: (level_order[x["level"]], x["en"]))
+
+
+def renumber(words):
+    """
+    Перенумеровывает id подряд
+    """
+    for i, w in enumerate(words, start=1):
+        w["id"] = i
+    return words
+
+
+def print_statistics(words):
+    """
+    Выводит статистику по уровням
+    """
+    stats = defaultdict(int)
+    for w in words:
+        stats[w["level"]] += 1
+
+    print("\n📊 Статистика по уровням:")
+    print("-" * 30)
+    for level in LEVEL_ORDER:
+        if level in stats:
+            print(f"  {level}: {stats[level]:4d} слов")
+    print("-" * 30)
+    print(f"  Всего: {len(words):4d} слов")
+
+    # Примеры слов каждого уровня
+    print("\n🔤 Примеры слов по уровням:")
+    for level in LEVEL_ORDER:
+        level_words = [w["en"] for w in words if w["level"] == level][:5]
+        if level_words:
+            print(f"  {level}: {', '.join(level_words)}")
 
 
 def main():
-    parser = OxfordDictionaryParser()
+    all_words = []
+    current_id = 1
 
-    # Парсинг Oxford 3000
-    print("=" * 50)
-    print("ОБРАБОТКА OXFORD 3000")
-    print("=" * 50)
-    text_3000 = parser.extract_text_from_pdf("Oxford-3000-Key-Words.pdf")
-    parser.parse_oxford_3000(text_3000)
+    for pdf_name in PDF_FILES:
+        pdf_path = Path(pdf_name)
 
-    # Парсинг Oxford 5000
-    print("\n" + "=" * 50)
-    print("ОБРАБОТКА OXFORD 5000")
-    print("=" * 50)
-    text_5000 = parser.extract_text_from_pdf("Oxford-5000-Key-Words.pdf")
-    parser.parse_oxford_5000(text_5000)
+        if not pdf_path.exists():
+            print(f"❌ Файл не найден: {pdf_name}")
+            sys.exit(1)
 
-    # Объединение и сортировка
-    print("\n" + "=" * 50)
-    print("ОБЪЕДИНЕНИЕ РЕЗУЛЬТАТОВ")
-    print("=" * 50)
-    sorted_words = parser.merge_and_sort_words()
+        print(f"📄 Обрабатываю {pdf_name} ...")
 
-    # Создание JSON
-    json_data = parser.create_json_output(sorted_words)
+        if "3000" in pdf_name:
+            parsed, current_id = parse_oxford_3000_pdf(pdf_path, current_id)
+        elif "5000" in pdf_name:
+            parsed, current_id = parse_oxford_5000_pdf(pdf_path, current_id)
+        else:
+            print(f"⚠️  Неизвестный файл: {pdf_name}, пропускаю")
+            continue
 
-    # Сохранение
-    parser.save_to_json(json_data, "words.json")
+        all_words.extend(parsed)
+        print(f"  Извлечено: {len(parsed)} слов")
 
-    # Статистика
-    print("\n" + "=" * 50)
-    print("СТАТИСТИКА")
-    print("=" * 50)
-    total_words = len(json_data)
-    print(f"Всего уникальных слов: {total_words}")
+    print(f"\n🔁 Удаляю дубликаты...")
+    all_words = deduplicate(all_words)
+    print(f"  После удаления дубликатов: {len(all_words)} слов")
+
+    print(f"\n🔀 Сортирую по уровням и алфавиту...")
+    all_words = sort_by_level_and_alphabet(all_words)
+
+    print(f"\n🔢 Перенумеровываю...")
+    all_words = renumber(all_words)
+
+    # Сохраняем результат
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        json.dump(all_words, f, ensure_ascii=False, indent=2)
+
+    print(f"\n✅ Готово!")
+    print(f"💾 Файл: {OUTPUT_FILE}")
+
+    # Выводим статистику
+    print_statistics(all_words)
 
     # Пример первых 20 слов
-    print("\nПример первых 20 слов:")
-    for i, entry in enumerate(json_data[:20]):
-        print(f"  {entry['id']:4d}. {entry['en']:20s} [{entry['level']}]")
+    print(f"\n📝 Первые 20 слов:")
+    print("-" * 40)
+    for i, word in enumerate(all_words[:20], 1):
+        print(f"{word['id']:4d}. {word['en']:20s} [{word['level']}]")
 
 
 if __name__ == "__main__":
