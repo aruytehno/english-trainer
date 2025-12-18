@@ -1,33 +1,32 @@
 // Константа для ключа хранилища прогресса
 const STORAGE_KEY = 'english_trainer_progress';
 
-// Элементы прогресса
-const level100Stats = document.getElementById('level-100-stats');
-const level500Stats = document.getElementById('level-500-stats');
-const level1000Stats = document.getElementById('level-1000-stats');
-const level2000Stats = document.getElementById('level-2000-stats');
-const level5000Stats = document.getElementById('level-5000-stats');
+// Элементы прогресса для CEFR уровней
+const levelA1Stats = document.getElementById('level-a1-stats');
+const levelA2Stats = document.getElementById('level-a2-stats');
+const levelB1Stats = document.getElementById('level-b1-stats');
+const levelB2Stats = document.getElementById('level-b2-stats');
+const levelC1Stats = document.getElementById('level-c1-stats');
 
-const level100Progress = document.getElementById('level-100-progress');
-const level500Progress = document.getElementById('level-500-progress');
-const level1000Progress = document.getElementById('level-1000-progress');
-const level2000Progress = document.getElementById('level-2000-progress');
-const level5000Progress = document.getElementById('level-5000-progress');
+const levelA1Progress = document.getElementById('level-a1-progress');
+const levelA2Progress = document.getElementById('level-a2-progress');
+const levelB1Progress = document.getElementById('level-b1-progress');
+const levelB2Progress = document.getElementById('level-b2-progress');
+const levelC1Progress = document.getElementById('level-c1-progress');
 
 // Элементы общей статистики
 const totalLearnedEl = document.getElementById('total-learned');
 const totalWordsEl = document.getElementById('total-words');
 const progressPercentageEl = document.getElementById('progress-percentage');
-const currentLevelEl = document.getElementById('current-level');
+const currentCefrLevelEl = document.getElementById('current-cefr-level');
 
-// Уровни Oxford 5000 (здесь будут реальные данные из words.json)
-// Для демо будем использовать проценты от общего числа слов
-const OXFORD_LEVELS = {
-  100: 0.20,  // Первые 20% слов - топ 100 (примерно)
-  500: 0.40,  // Следующие 20% - до 500 слов
-  1000: 0.60, // До 1000 слов (Oxford 3000)
-  2000: 0.80, // До 2000 слов (Oxford 5000 B2)
-  5000: 1.00  // Полные 5000 слов
+// Количества слов для каждого уровня CEFR
+const CEFR_LEVELS = {
+  A1: 500,     // Beginner
+  A2: 1000,    // Elementary (A1 + дополнительные 500 слов)
+  B1: 1500,    // Intermediate (A2 + дополнительные 500 слов)
+  B2: 2000,    // Upper Intermediate (B1 + дополнительные 500 слов)
+  C1: 5000     // Advanced (B2 + дополнительные 3000 слов)
 };
 
 let allWords = [];
@@ -70,139 +69,138 @@ function loadUserProgress() {
   }
 }
 
-// Рассчет прогресса по уровням
-function calculateLevelProgress() {
+// Рассчет прогресса по CEFR уровням
+function calculateCefrLevelProgress() {
   const totalWordsCount = allWords.length;
 
   // Если нет слов, возвращаем нули
   if (totalWordsCount === 0) {
     return {
-      level100: { learned: 0, total: 0, percentage: 0 },
-      level500: { learned: 0, total: 0, percentage: 0 },
-      level1000: { learned: 0, total: 0, percentage: 0 },
-      level2000: { learned: 0, total: 0, percentage: 0 },
-      level5000: { learned: 0, total: 0, percentage: 0 }
+      A1: { learned: 0, total: CEFR_LEVELS.A1, percentage: 0 },
+      A2: { learned: 0, total: CEFR_LEVELS.A2, percentage: 0 },
+      B1: { learned: 0, total: CEFR_LEVELS.B1, percentage: 0 },
+      B2: { learned: 0, total: CEFR_LEVELS.B2, percentage: 0 },
+      C1: { learned: 0, total: CEFR_LEVELS.C1, percentage: 0 }
     };
   }
 
-  // Рассчитываем пороги для каждого уровня
-  const levelThresholds = {
-    level100: Math.floor(totalWordsCount * OXFORD_LEVELS[100]),
-    level500: Math.floor(totalWordsCount * OXFORD_LEVELS[500]),
-    level1000: Math.floor(totalWordsCount * OXFORD_LEVELS[1000]),
-    level2000: Math.floor(totalWordsCount * OXFORD_LEVELS[2000]),
-    level5000: Math.floor(totalWordsCount * OXFORD_LEVELS[5000])
-  };
-
   // Подсчитываем выученные слова для каждого уровня
-  let level100Learned = 0;
-  let level500Learned = 0;
-  let level1000Learned = 0;
-  let level2000Learned = 0;
-  let level5000Learned = 0;
+  let A1Learned = 0;
+  let A2Learned = 0;
+  let B1Learned = 0;
+  let B2Learned = 0;
+  let C1Learned = 0;
 
-  // Проходим по всем словам
+  // Проходим по всем словам и считаем выученные
   allWords.forEach((word, index) => {
     const progress = userProgress[word.id];
     const isLearned = progress && progress.score >= 10;
 
     if (isLearned) {
-      // Проверяем к какому уровню относится слово
-      if (index < levelThresholds.level100) level100Learned++;
-      if (index < levelThresholds.level500) level500Learned++;
-      if (index < levelThresholds.level1000) level1000Learned++;
-      if (index < levelThresholds.level2000) level2000Learned++;
-      if (index < levelThresholds.level5000) level5000Learned++;
+      // Уровень определяется по индексу слова в общем списке
+      // (предполагаем, что слова отсортированы от самых частых к менее частым)
+
+      // A1: первые 500 слов
+      if (index < 500) A1Learned++;
+
+      // A2: первые 1000 слов
+      if (index < 1000) A2Learned++;
+
+      // B1: первые 1500 слов
+      if (index < 1500) B1Learned++;
+
+      // B2: первые 2000 слов
+      if (index < 2000) B2Learned++;
+
+      // C1: все 5000 слов
+      if (index < 5000) C1Learned++;
     }
   });
 
-  // Рассчитываем проценты
-  const level100Percentage = levelThresholds.level100 > 0 ?
-    Math.round((level100Learned / levelThresholds.level100) * 100) : 0;
-  const level500Percentage = levelThresholds.level500 > 0 ?
-    Math.round((level500Learned / levelThresholds.level500) * 100) : 0;
-  const level1000Percentage = levelThresholds.level1000 > 0 ?
-    Math.round((level1000Learned / levelThresholds.level1000) * 100) : 0;
-  const level2000Percentage = levelThresholds.level2000 > 0 ?
-    Math.round((level2000Learned / levelThresholds.level2000) * 100) : 0;
-  const level5000Percentage = levelThresholds.level5000 > 0 ?
-    Math.round((level5000Learned / levelThresholds.level5000) * 100) : 0;
+  // Рассчитываем проценты для каждого уровня
+  const A1Percentage = Math.round((A1Learned / Math.min(totalWordsCount, CEFR_LEVELS.A1)) * 100);
+  const A2Percentage = Math.round((A2Learned / Math.min(totalWordsCount, CEFR_LEVELS.A2)) * 100);
+  const B1Percentage = Math.round((B1Learned / Math.min(totalWordsCount, CEFR_LEVELS.B1)) * 100);
+  const B2Percentage = Math.round((B2Learned / Math.min(totalWordsCount, CEFR_LEVELS.B2)) * 100);
+  const C1Percentage = Math.round((C1Learned / Math.min(totalWordsCount, CEFR_LEVELS.C1)) * 100);
 
   return {
-    level100: {
-      learned: level100Learned,
-      total: levelThresholds.level100,
-      percentage: level100Percentage
+    A1: {
+      learned: A1Learned,
+      total: Math.min(totalWordsCount, CEFR_LEVELS.A1),
+      percentage: A1Percentage
     },
-    level500: {
-      learned: level500Learned,
-      total: levelThresholds.level500,
-      percentage: level500Percentage
+    A2: {
+      learned: A2Learned,
+      total: Math.min(totalWordsCount, CEFR_LEVELS.A2),
+      percentage: A2Percentage
     },
-    level1000: {
-      learned: level1000Learned,
-      total: levelThresholds.level1000,
-      percentage: level1000Percentage
+    B1: {
+      learned: B1Learned,
+      total: Math.min(totalWordsCount, CEFR_LEVELS.B1),
+      percentage: B1Percentage
     },
-    level2000: {
-      learned: level2000Learned,
-      total: levelThresholds.level2000,
-      percentage: level2000Percentage
+    B2: {
+      learned: B2Learned,
+      total: Math.min(totalWordsCount, CEFR_LEVELS.B2),
+      percentage: B2Percentage
     },
-    level5000: {
-      learned: level5000Learned,
-      total: levelThresholds.level5000,
-      percentage: level5000Percentage
+    C1: {
+      learned: C1Learned,
+      total: Math.min(totalWordsCount, CEFR_LEVELS.C1),
+      percentage: C1Percentage
     }
   };
 }
 
 // Рассчет общей статистики
-function calculateOverallStats(levelProgress) {
+function calculateOverallStats(cefrProgress) {
   const totalWordsCount = allWords.length;
   const totalLearned = Object.values(userProgress).filter(p => p.score >= 10).length;
   const overallPercentage = totalWordsCount > 0 ?
     Math.round((totalLearned / totalWordsCount) * 100) : 0;
 
-  // Определяем текущий уровень CEFR
-  let currentLevel = "A1";
-  if (levelProgress.level100.percentage >= 80) currentLevel = "A2";
-  if (levelProgress.level500.percentage >= 80) currentLevel = "B1";
-  if (levelProgress.level1000.percentage >= 80) currentLevel = "B2";
-  if (levelProgress.level2000.percentage >= 80) currentLevel = "C1";
+  // Определяем текущий уровень CEFR на основе прогресса
+  let currentCefrLevel = "A1";
+
+  if (cefrProgress.A1.percentage >= 80) currentCefrLevel = "A1";
+  if (cefrProgress.A2.percentage >= 80) currentCefrLevel = "A2";
+  if (cefrProgress.B1.percentage >= 80) currentCefrLevel = "B1";
+  if (cefrProgress.B2.percentage >= 80) currentCefrLevel = "B2";
+  if (cefrProgress.C1.percentage >= 80) currentCefrLevel = "C1";
 
   return {
     totalLearned,
     totalWords: totalWordsCount,
     overallPercentage,
-    currentLevel
+    currentCefrLevel
   };
 }
 
 // Обновление отображения прогресса
 function updateProgressDisplay() {
-  const levelProgress = calculateLevelProgress();
-  const overallStats = calculateOverallStats(levelProgress);
+  const cefrProgress = calculateCefrLevelProgress();
+  const overallStats = calculateOverallStats(cefrProgress);
 
-  // Обновляем прогресс по уровням
-  level100Stats.textContent = `${levelProgress.level100.learned}/${levelProgress.level100.total} (${levelProgress.level100.percentage}%)`;
-  level500Stats.textContent = `${levelProgress.level500.learned}/${levelProgress.level500.total} (${levelProgress.level500.percentage}%)`;
-  level1000Stats.textContent = `${levelProgress.level1000.learned}/${levelProgress.level1000.total} (${levelProgress.level1000.percentage}%)`;
-  level2000Stats.textContent = `${levelProgress.level2000.learned}/${levelProgress.level2000.total} (${levelProgress.level2000.percentage}%)`;
-  level5000Stats.textContent = `${levelProgress.level5000.learned}/${levelProgress.level5000.total} (${levelProgress.level5000.percentage}%)`;
+  // Обновляем прогресс по CEFR уровням
+  levelA1Stats.textContent = `${cefrProgress.A1.learned}/${cefrProgress.A1.total} (${cefrProgress.A1.percentage}%)`;
+  levelA2Stats.textContent = `${cefrProgress.A2.learned}/${cefrProgress.A2.total} (${cefrProgress.A2.percentage}%)`;
+  levelB1Stats.textContent = `${cefrProgress.B1.learned}/${cefrProgress.B1.total} (${cefrProgress.B1.percentage}%)`;
+  levelB2Stats.textContent = `${cefrProgress.B2.learned}/${cefrProgress.B2.total} (${cefrProgress.B2.percentage}%)`;
+  levelC1Stats.textContent = `${cefrProgress.C1.learned}/${cefrProgress.C1.total} (${cefrProgress.C1.percentage}%)`;
 
   // Обновляем прогресс-бары
-  level100Progress.style.width = `${levelProgress.level100.percentage}%`;
-  level500Progress.style.width = `${levelProgress.level500.percentage}%`;
-  level1000Progress.style.width = `${levelProgress.level1000.percentage}%`;
-  level2000Progress.style.width = `${levelProgress.level2000.percentage}%`;
-  level5000Progress.style.width = `${levelProgress.level5000.percentage}%`;
+  levelA1Progress.style.width = `${cefrProgress.A1.percentage}%`;
+  levelA2Progress.style.width = `${cefrProgress.A2.percentage}%`;
+  levelB1Progress.style.width = `${cefrProgress.B1.percentage}%`;
+  levelB2Progress.style.width = `${cefrProgress.B2.percentage}%`;
+  levelC1Progress.style.width = `${cefrProgress.C1.percentage}%`;
 
   // Обновляем общую статистику
   totalLearnedEl.textContent = overallStats.totalLearned;
   totalWordsEl.textContent = overallStats.totalWords;
   progressPercentageEl.textContent = `${overallStats.overallPercentage}%`;
-  currentLevelEl.textContent = overallStats.currentLevel;
+  currentCefrLevelEl.textContent = overallStats.currentCefrLevel;
 }
 
 // Обновляем прогресс каждые 2 секунды (на случай изменений в других вкладках)
