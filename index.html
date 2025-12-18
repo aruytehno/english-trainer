@@ -21,94 +21,99 @@
 
     <main class="home-main">
       <div class="progress-overview">
-        <h2 class="section-title">Мой прогресс по Oxford 5000™</h2>
+        <h2 class="section-title">Мой прогресс по Oxford 5000™ & CEFR</h2>
 
         <div class="cefr-levels">
           <div class="cefr-level">
             <div class="cefr-badge a1">A1</div>
             <div class="cefr-info">
-              <h3>Basic User</h3>
-              <p>100 самых популярных слов</p>
+              <h3>Beginner</h3>
+              <p>500 слов</p>
             </div>
           </div>
           <div class="cefr-level">
             <div class="cefr-badge a2">A2</div>
             <div class="cefr-info">
               <h3>Elementary</h3>
-              <p>Следующие 400 слов</p>
+              <p>1 000 слов</p>
             </div>
           </div>
           <div class="cefr-level">
             <div class="cefr-badge b1">B1</div>
             <div class="cefr-info">
               <h3>Intermediate</h3>
-              <p>1000 слов (Oxford 3000)</p>
+              <p>2 500 слов</p>
             </div>
           </div>
           <div class="cefr-level">
             <div class="cefr-badge b2">B2</div>
             <div class="cefr-info">
               <h3>Upper Intermediate</h3>
-              <p>2000 слов (Oxford 5000)</p>
+              <p>4 000 слов</p>
             </div>
           </div>
           <div class="cefr-level">
             <div class="cefr-badge c1">C1</div>
             <div class="cefr-info">
               <h3>Advanced</h3>
-              <p>5000 слов (полный список)</p>
+              <p>5 000 слов</p>
             </div>
           </div>
         </div>
 
         <div class="progress-levels">
+          <!-- A1 уровень -->
           <div class="progress-level">
             <div class="level-header">
-              <span class="level-title">100 самых популярных слов</span>
-              <span class="level-stats" id="level-100-stats">0/100 (0%)</span>
+              <span class="level-title">A1 Beginner</span>
+              <span class="level-stats" id="level-a1-stats">0/500 (0%)</span>
             </div>
             <div class="progress-bar">
-              <div class="progress-fill" id="level-100-progress" style="width: 0%"></div>
+              <div class="progress-fill" id="level-a1-progress" style="width: 0%"></div>
             </div>
           </div>
 
+          <!-- A2 уровень -->
           <div class="progress-level">
             <div class="level-header">
-              <span class="level-title">500 слов (A2 уровень)</span>
-              <span class="level-stats" id="level-500-stats">0/500 (0%)</span>
+              <span class="level-title">A2 Elementary</span>
+              <span class="level-stats" id="level-a2-stats">0/1 000 (0%)</span>
             </div>
             <div class="progress-bar">
-              <div class="progress-fill" id="level-500-progress" style="width: 0%"></div>
+              <div class="progress-fill" id="level-a2-progress" style="width: 0%"></div>
             </div>
           </div>
 
+          <!-- B1 уровень -->
           <div class="progress-level">
             <div class="level-header">
-              <span class="level-title">1000 слов (Oxford 3000, B1)</span>
-              <span class="level-stats" id="level-1000-stats">0/1000 (0%)</span>
+              <span class="level-title">B1 Intermediate</span>
+              <span class="level-stats" id="level-b1-stats">0/1 500 (0%)</span>
             </div>
             <div class="progress-bar">
-              <div class="progress-fill" id="level-1000-progress" style="width: 0%"></div>
+              <div class="progress-fill" id="level-b1-progress" style="width: 0%"></div>
             </div>
           </div>
 
+          <!-- B2 уровень -->
           <div class="progress-level">
             <div class="level-header">
-              <span class="level-title">2000 слов (Oxford 5000, B2)</span>
-              <span class="level-stats" id="level-2000-stats">0/2000 (0%)</span>
+              <span class="level-title">B2 Upper Intermediate</span>
+              <span class="level-stats" id="level-b2-stats">0/2 000 (0%)</span>
             </div>
             <div class="progress-bar">
-              <div class="progress-fill" id="level-2000-progress" style="width: 0%"></div>
+              <div class="progress-fill" id="level-b2-progress" style="width: 0%"></div>
             </div>
           </div>
 
+          <!-- C1 уровень -->
           <div class="progress-level">
             <div class="level-header">
-              <span class="level-title">5000 слов (полный Oxford)</span>
-              <span class="level-stats" id="level-5000-stats">0/5000 (0%)</span>
+              <span class="level-title">C1 Advanced</span>
+              <span class="level-stats" id="level-c1-stats">0/5 000 (0%)</span>
             </div>
             <div class="progress-bar">
-              <div class="progress-fill" id="level-5000-progress" style="width: 0%"></div>
+              <div class="progress-fill" id="level-c1-progress" style="width: 0%"></div>
             </div>
           </div>
         </div>
@@ -127,8 +132,8 @@
             <div class="stat-label">Общий прогресс</div>
           </div>
           <div class="stat-card">
-            <div class="stat-value" id="current-level">A1</div>
-            <div class="stat-label">Текущий уровень</div>
+            <div class="stat-value" id="current-cefr-level">A1</div>
+            <div class="stat-label">Уровень CEFR</div>
           </div>
         </div>
       </div>
