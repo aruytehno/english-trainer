@@ -111,3 +111,25 @@ button:active {
     justify-content: center;
   }
 }
+
+/* Стили для домашней страницы */
+.home-main {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.progress-overview,
+.mode-selector {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

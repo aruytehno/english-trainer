@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>English Trainer – Home</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="home.css" />
 </head>
 <body>
   <div class="app">
@@ -18,33 +19,160 @@
       <h1 class="title">English Trainer</h1>
     </header>
 
-    <main>
-      <p style="text-align: center; margin-bottom: 14px;">
-        Выбери режим тренировки:
-      </p>
-      <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
-        <li>
-          <a href="trainer.html" class="nav-tab" style="display: inline-block; width: 100%; text-align: center;">
-            Тренажёр пар слов
+    <main class="home-main">
+      <div class="progress-overview">
+        <h2 class="section-title">Мой прогресс по Oxford 5000™</h2>
+
+        <div class="cefr-levels">
+          <div class="cefr-level">
+            <div class="cefr-badge a1">A1</div>
+            <div class="cefr-info">
+              <h3>Basic User</h3>
+              <p>100 самых популярных слов</p>
+            </div>
+          </div>
+          <div class="cefr-level">
+            <div class="cefr-badge a2">A2</div>
+            <div class="cefr-info">
+              <h3>Elementary</h3>
+              <p>Следующие 400 слов</p>
+            </div>
+          </div>
+          <div class="cefr-level">
+            <div class="cefr-badge b1">B1</div>
+            <div class="cefr-info">
+              <h3>Intermediate</h3>
+              <p>1000 слов (Oxford 3000)</p>
+            </div>
+          </div>
+          <div class="cefr-level">
+            <div class="cefr-badge b2">B2</div>
+            <div class="cefr-info">
+              <h3>Upper Intermediate</h3>
+              <p>2000 слов (Oxford 5000)</p>
+            </div>
+          </div>
+          <div class="cefr-level">
+            <div class="cefr-badge c1">C1</div>
+            <div class="cefr-info">
+              <h3>Advanced</h3>
+              <p>5000 слов (полный список)</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="progress-levels">
+          <div class="progress-level">
+            <div class="level-header">
+              <span class="level-title">100 самых популярных слов</span>
+              <span class="level-stats" id="level-100-stats">0/100 (0%)</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="level-100-progress" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="progress-level">
+            <div class="level-header">
+              <span class="level-title">500 слов (A2 уровень)</span>
+              <span class="level-stats" id="level-500-stats">0/500 (0%)</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="level-500-progress" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="progress-level">
+            <div class="level-header">
+              <span class="level-title">1000 слов (Oxford 3000, B1)</span>
+              <span class="level-stats" id="level-1000-stats">0/1000 (0%)</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="level-1000-progress" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="progress-level">
+            <div class="level-header">
+              <span class="level-title">2000 слов (Oxford 5000, B2)</span>
+              <span class="level-stats" id="level-2000-stats">0/2000 (0%)</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="level-2000-progress" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="progress-level">
+            <div class="level-header">
+              <span class="level-title">5000 слов (полный Oxford)</span>
+              <span class="level-stats" id="level-5000-stats">0/5000 (0%)</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="level-5000-progress" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="overall-stats">
+          <div class="stat-card">
+            <div class="stat-value" id="total-learned">0</div>
+            <div class="stat-label">Выучено слов</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="total-words">0</div>
+            <div class="stat-label">Всего слов</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="progress-percentage">0%</div>
+            <div class="stat-label">Общий прогресс</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="current-level">A1</div>
+            <div class="stat-label">Текущий уровень</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mode-selector">
+        <h2 class="section-title">Выбери режим тренировки:</h2>
+
+        <div class="mode-grid">
+          <a href="trainer.html" class="mode-card">
+            <div class="mode-icon">📚</div>
+            <div class="mode-content">
+              <h3 class="mode-title">Тренажёр пар слов</h3>
+              <p class="mode-description">Сопоставление английских слов с русскими переводами</p>
+            </div>
           </a>
-        </li>
-        <li>
-          <a href="game.html" class="nav-tab" style="display: inline-block; width: 100%; text-align: center;">
-            Лазерные слова (игра)
+
+          <a href="game.html" class="mode-card">
+            <div class="mode-icon">🎮</div>
+            <div class="mode-content">
+              <h3 class="mode-title">Лазерные слова</h3>
+              <p class="mode-description">Игра на скорость и точность перевода</p>
+            </div>
           </a>
-        </li>
-        <li>
-          <a href="quiz.html" class="nav-tab" style="display: inline-block; width: 100%; text-align: center;">
-            Quiz Mode: выбор перевода
+
+          <a href="quiz.html" class="mode-card">
+            <div class="mode-icon">📝</div>
+            <div class="mode-content">
+              <h3 class="mode-title">Quiz Mode</h3>
+              <p class="mode-description">Выбор правильного перевода из 4 вариантов</p>
+            </div>
           </a>
-        </li>
-        <li>
-          <a href="dictionary.html" class="nav-tab" style="display: inline-block; width: 100%; text-align: center;">
-            Словарь и прогресс
+
+          <a href="dictionary.html" class="mode-card">
+            <div class="mode-icon">📖</div>
+            <div class="mode-content">
+              <h3 class="mode-title">Словарь и прогресс</h3>
+              <p class="mode-description">Отслеживание изученных слов и статистика</p>
+            </div>
           </a>
-        </li>
-      </ul>
+        </div>
+      </div>
     </main>
   </div>
+
+  <script src="home.js"></script>
 </body>
 </html>
