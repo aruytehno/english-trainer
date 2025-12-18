@@ -8,7 +8,7 @@ PDF_FILES = [
     "Oxford-5000-Key-Words.pdf",
 ]
 
-OUTPUT_FILE = "words.json"
+OUTPUT_FILE = "../words.json"
 
 # CEFR уровни
 LEVELS = {"A1", "A2", "B1", "B2", "C1", "C2"}
